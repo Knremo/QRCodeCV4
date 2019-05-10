@@ -55,7 +55,7 @@ protected:
 void QRDetect::init(const Mat& src, double eps_vertical_, double eps_horizontal_)
 {
     CV_TRACE_FUNCTION();
-    CV_Assert(!src.empty());
+    CV_Assert(!src.empty()); // bool src.empty()
     const double min_side = std::min(src.size().width, src.size().height);
     if (min_side < 512.0)
     {
@@ -87,21 +87,21 @@ vector<Vec3d> QRDetect::searchHorizontalLines()
     double test_lines[test_lines_size];
     vector<size_t> pixels_position;
 
-    for (int y = 0; y < height_bin_barcode; y++)
+    for (int y = 0; y < height_bin_barcode; y++) //循环 bin_barcode 的每一行
     {
         pixels_position.clear();
-        const uint8_t *bin_barcode_row = bin_barcode.ptr<uint8_t>(y);
+        const uint8_t *bin_barcode_row = bin_barcode.ptr<uint8_t>(y); //指向每一行的指针
 
         int pos = 0;
-        for (; pos < width_bin_barcode; pos++) { if (bin_barcode_row[pos] == 0) break; }
-        if (pos == width_bin_barcode) { continue; }
-
-        pixels_position.push_back(pos);
+        for (; pos < width_bin_barcode; pos++) { if (bin_barcode_row[pos] == 0) break; } //遍历该行每一个元素，若为0则break
+        if (pos == width_bin_barcode) { continue; } //如果到最后一个元素，则跳过外层循环的后面的代码
+                                                    //如果该行最后一像素之前有一个0，则执行以下代码
+        pixels_position.push_back(pos);             //找到第一个黑色像素的位置
         pixels_position.push_back(pos);
         pixels_position.push_back(pos);
 
         uint8_t future_pixel = 255;
-        for (int x = pos; x < width_bin_barcode; x++)
+        for (int x = pos; x < width_bin_barcode; x++)   //把之后每一次的黑白互换的位置记下
         {
             if (bin_barcode_row[x] == future_pixel)
             {
@@ -112,8 +112,8 @@ vector<Vec3d> QRDetect::searchHorizontalLines()
         pixels_position.push_back(width_bin_barcode - 1);
         for (size_t i = 2; i < pixels_position.size() - 4; i+=2)
         {
-            test_lines[0] = static_cast<double>(pixels_position[i - 1] - pixels_position[i - 2]);
-            test_lines[1] = static_cast<double>(pixels_position[i    ] - pixels_position[i - 1]);
+            test_lines[0] = static_cast<double>(pixels_position[i - 1] - pixels_position[i - 2]); //类型转换
+            test_lines[1] = static_cast<double>(pixels_position[i    ] - pixels_position[i - 1]); //5段黑白图案的长度
             test_lines[2] = static_cast<double>(pixels_position[i + 1] - pixels_position[i    ]);
             test_lines[3] = static_cast<double>(pixels_position[i + 2] - pixels_position[i + 1]);
             test_lines[4] = static_cast<double>(pixels_position[i + 3] - pixels_position[i + 2]);
@@ -125,16 +125,16 @@ vector<Vec3d> QRDetect::searchHorizontalLines()
             if (length == 0) { continue; }
             for (size_t j = 0; j < test_lines_size; j++)
             {
-                if (j != 2) { weight += fabs((test_lines[j] / length) - 1.0/7.0); }
+                if (j != 2) { weight += fabs((test_lines[j] / length) - 1.0/7.0); } //每一段的比例与1:1:3:1:1的误差
                 else        { weight += fabs((test_lines[j] / length) - 3.0/7.0); }
             }
 
-            if (weight < eps_vertical)
+            if (weight < eps_vertical) //如果总的误差小于我们设置的阈值
             {
                 Vec3d line;
-                line[0] = static_cast<double>(pixels_position[i - 2]);
-                line[1] = y;
-                line[2] = length;
+                line[0] = static_cast<double>(pixels_position[i - 2]); //第一个黑色像素的位置
+                line[1] = y;                                           //当前的行数
+                line[2] = length;                                      //从前到后的总长度
                 result.push_back(line);
             }
         }
@@ -153,12 +153,12 @@ vector<Point2f> QRDetect::separateVerticalLines(const vector<Vec3d> &list_lines)
 
     for (size_t pnt = 0; pnt < list_lines.size(); pnt++)
     {
-        const int x = cvRound(list_lines[pnt][0] + list_lines[pnt][2] * 0.5);
+        const int x = cvRound(list_lines[pnt][0] + list_lines[pnt][2] * 0.5); //x,y是中心点
         const int y = cvRound(list_lines[pnt][1]);
 
         // --------------- Search vertical up-lines --------------- //
 
-        test_lines.clear();
+        test_lines.clear();                                         //向下搜索找到三个黑白交替的点，记下黑白黑三段的长度
         uint8_t future_pixel_up = 255;
 
         for (int j = y; j < bin_barcode.rows - 1; j++)
@@ -176,7 +176,7 @@ vector<Point2f> QRDetect::separateVerticalLines(const vector<Vec3d> &list_lines)
 
         // --------------- Search vertical down-lines --------------- //
 
-        uint8_t future_pixel_down = 255;
+        uint8_t future_pixel_down = 255;                        //向上搜索
         for (int j = y; j >= 1; j--)
         {
             next_pixel = bin_barcode.ptr<uint8_t>(j - 1)[x];
@@ -231,21 +231,21 @@ void QRDetect::fixationPoints(vector<Point2f> &local_point)
     norm_triangl[1] = norm(local_point[0] - local_point[2]);
     norm_triangl[2] = norm(local_point[1] - local_point[0]);
 
-    cos_angles[0] = (norm_triangl[1] * norm_triangl[1] + norm_triangl[2] * norm_triangl[2]
+    cos_angles[0] = (norm_triangl[1] * norm_triangl[1] + norm_triangl[2] * norm_triangl[2]          //三个点构成的三角形的每个角的余弦值
                   -  norm_triangl[0] * norm_triangl[0]) / (2 * norm_triangl[1] * norm_triangl[2]);
     cos_angles[1] = (norm_triangl[0] * norm_triangl[0] + norm_triangl[2] * norm_triangl[2]
                   -  norm_triangl[1] * norm_triangl[1]) / (2 * norm_triangl[0] * norm_triangl[2]);
     cos_angles[2] = (norm_triangl[0] * norm_triangl[0] + norm_triangl[1] * norm_triangl[1]
                   -  norm_triangl[2] * norm_triangl[2]) / (2 * norm_triangl[0] * norm_triangl[1]);
 
-    const double angle_barrier = 0.85;
+    const double angle_barrier = 0.85;  //有一个角的余弦值大于0.85就失败
     if (fabs(cos_angles[0]) > angle_barrier || fabs(cos_angles[1]) > angle_barrier || fabs(cos_angles[2]) > angle_barrier)
     {
         local_point.clear();
         return;
     }
 
-    size_t i_min_cos =
+    size_t i_min_cos = //最小的cos的索引
        (cos_angles[0] < cos_angles[1] && cos_angles[0] < cos_angles[2]) ? 0 :
        (cos_angles[1] < cos_angles[0] && cos_angles[1] < cos_angles[2]) ? 1 : 2;
 
