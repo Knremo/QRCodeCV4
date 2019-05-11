@@ -11,7 +11,7 @@ project(QRcodeCV4)
 # Find OpenCV, you may need to set OpenCV_DIR variable
 # to the absolute path to the directory containing OpenCVConfig.cmake file
 # via the command line or GUI
-set(OpenCV_DIR "E:/code/opencv-4.1.0-MinGW")
+set(OpenCV_DIR "E:/code/opencv-4.1.0d-MinGW")
 find_package(OpenCV REQUIRED)
 
 # If the package has been found, several variables will
