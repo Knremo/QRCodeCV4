@@ -259,7 +259,7 @@ void QRDetect::fixationPoints(vector<Point2f> &local_point)
 
         const Point2f current_point(local_point[current_index]),
             left_point(local_point[left_index]), right_point(local_point[right_index]),
-            central_point(intersectionLines(current_point,
+            central_point(intersectionLines(current_point, // (a1,a2,b1,b2)返回a,b两条直线的交点
                               Point2f(static_cast<float>((local_point[left_index].x + local_point[right_index].x) * 0.5),
                                       static_cast<float>((local_point[left_index].y + local_point[right_index].y) * 0.5)),
                               Point2f(0, static_cast<float>(bin_barcode.rows - 1)),
@@ -309,7 +309,7 @@ void QRDetect::fixationPoints(vector<Point2f> &local_point)
 
     const Point2f rpt = local_point[0], bpt = local_point[1], gpt = local_point[2];
     Matx22f m(rpt.x - bpt.x, rpt.y - bpt.y, gpt.x - rpt.x, gpt.y - rpt.y);
-    if( determinant(m) > 0 )
+    if( determinant(m) > 0 ) //行列式
     {
         std::swap(local_point[1], local_point[2]);
     }
