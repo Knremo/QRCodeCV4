@@ -64,7 +64,8 @@ public:
         //如果有一边小于512，放大尺寸到512，并设置 qrdet.coeff_expansion
         //把改变尺寸的 src 给 qrdet.barcode
 
-        resize(src, barcode, new_size, 0, 0, INTER_LINEAR); //(源, 目的, 新尺寸, 比例因子x, 比例因子y, 插值方法)
+        resize(src, barcode, new_size, 0, 0, INTER_LINEAR); 
+        //(源, 目的, 新尺寸, 比例因子x, 比例因子y, 插值方法)
 
         //如果没有小于512，设置 qrdet.coeff_expansion = 1.0, qrdet.barcode = src
         //设置 eps_vertical = 0.2，eps_horizontal = 0.1
