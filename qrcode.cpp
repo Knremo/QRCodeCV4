@@ -375,11 +375,13 @@ bool QRDetect::localization()
 
     vector<Point2f> centers;
     Mat labels;
+
+    //kmeans聚类算法得到三个定位点
     kmeans(list_lines_y, 3, labels,
            TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 10, 0.1),
            3, KMEANS_PP_CENTERS, localization_points);
 
-    fixationPoints(localization_points);
+    fixationPoints(localization_points); //三个点按顺序排列好
     if (localization_points.size() != 3)
     {
         return false;
